@@ -76,6 +76,42 @@ activities = {
         "schedule": "Fridays, 3:30 PM - 4:30 PM",
         "max_participants": 16,
         "participants": []
+    },
+    "Volleyball Club": {
+        "description": "Practice volleyball skills and play team matches",
+        "schedule": "Tuesdays and Thursdays, 3:30 PM - 5:00 PM",
+        "max_participants": 20,
+        "participants": []
+    },
+    "Swimming Club": {
+        "description": "Build swimming technique, endurance, and water safety",
+        "schedule": "Mondays and Wednesdays, 3:30 PM - 5:00 PM",
+        "max_participants": 18,
+        "participants": []
+    },
+    "Music Ensemble": {
+        "description": "Play together in a group and prepare music for school events",
+        "schedule": "Mondays, 3:30 PM - 5:00 PM",
+        "max_participants": 18,
+        "participants": []
+    },
+    "Photography Club": {
+        "description": "Learn photography techniques and create visual projects",
+        "schedule": "Fridays, 3:30 PM - 5:00 PM",
+        "max_participants": 14,
+        "participants": []
+    },
+    "Science Olympiad": {
+        "description": "Explore scientific topics and solve hands-on challenges",
+        "schedule": "Thursdays, 3:30 PM - 4:30 PM",
+        "max_participants": 16,
+        "participants": []
+    },
+    "Robotics Club": {
+        "description": "Design, build, and program robots as a team",
+        "schedule": "Wednesdays, 3:30 PM - 5:00 PM",
+        "max_participants": 16,
+        "participants": []
     }
 }
 
@@ -110,3 +146,26 @@ def signup_for_activity(activity_name: str, email: str):
 
         activity["participants"].append(normalized_email)
     return {"message": f"Signed up {normalized_email} for {activity_name}"}
+
+
+@app.delete("/activities/{activity_name}/participants")
+def unregister_from_activity(activity_name: str, email: str):
+    """Remove a student from an activity"""
+    if activity_name not in activities:
+        raise HTTPException(status_code=404, detail="Activity not found")
+
+    normalized_email = email.strip().casefold()
+    activity = activities[activity_name]
+
+    with signup_lock:
+        participant_index = next(
+            (index for index, participant in enumerate(activity["participants"])
+             if participant.strip().casefold() == normalized_email),
+            None,
+        )
+        if participant_index is None:
+            raise HTTPException(status_code=404, detail="Student is not signed up for this activity")
+
+        activity["participants"].pop(participant_index)
+
+    return {"message": f"Unregistered {normalized_email} from {activity_name}"}
